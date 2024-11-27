@@ -9,15 +9,16 @@ interface GitHubIssue {
     title: string;
     state: string;
     created_at: string;
-    body: string;
+    body: string | null;
     labels: Array<{
         name: string;
         color: string;
     }>;
+    pull_request?: unknown
 }
 
 // Set to a number to limit pages during development, or false for no limit
-const DEV_PAGE_LIMIT = 3;
+const DEV_PAGE_LIMIT = 10;
 
 // Timeout for GitHub API calls (in milliseconds)
 const API_TIMEOUT = 10000;
@@ -51,7 +52,7 @@ export async function GET() {
                 break;
             }
 
-            const response = await octokit.issues.listForRepo({
+            const response = await octokit.rest.issues.listForRepo({
                 owner: 'posit-dev',
                 repo: 'positron',
                 state: 'open',
@@ -60,16 +61,26 @@ export async function GET() {
                 since: getOneWeekAgo(),
             });
 
-            const issues = response.data.map(issue => ({
+            const issues: GitHubIssue[] = response.data.map(issue => ({
                 number: issue.number,
                 title: issue.title,
                 state: issue.state,
                 created_at: issue.created_at,
-                body: issue.body || '',
-                labels: issue.labels.map(label => ({
-                    name: label.name,
-                    color: label.color,
-                })),
+                body: issue.body ?? null,
+                labels: issue.labels.map(label => {
+                    // Handle both string labels and object labels
+                    if (typeof label === 'string') {
+                        return {
+                            name: label,
+                            color: 'default'
+                        };
+                    }
+                    return {
+                        name: label.name || '',
+                        color: label.color || 'default'
+                    };
+                }),
+                pull_request: issue.pull_request
             }));
 
             allIssues = [...allIssues, ...issues];
@@ -81,9 +92,12 @@ export async function GET() {
             page++;
         }
 
+        // Filter out pull requests - if an issue has a pull_request property, it's a PR
+        const nonPullRequests = allIssues.filter((issue) => !issue.pull_request);
+
         return NextResponse.json({
-            total: allIssues.length,
-            issues: allIssues,
+            total: nonPullRequests.length,
+            issues: nonPullRequests,
         });
     } catch (error) {
         console.error('Error fetching GitHub issues:', error);

@@ -15,6 +15,9 @@ interface GitHubData {
             name: string;
             color: string;
         }>;
+        pull_request?: {
+            url: string;
+        };
     }>;
 }
 
@@ -44,12 +47,14 @@ export function useGithubIssues() {
                 }
 
                 // Filter for unlabeled issues only
-                const unlabeledIssues = {
-                    total: issuesData.issues.filter((issue: GitHubData['issues'][0]) => issue.labels.length === 0).length,
-                    issues: issuesData.issues.filter((issue: GitHubData['issues'][0]) => issue.labels.length === 0)
-                };
+                const unlabeledIssues = issuesData.issues.filter((issue: GitHubData['issues'][0]) =>
+                    issue.labels.length === 0
+                )
 
-                setGithubData(unlabeledIssues);
+                setGithubData({
+                    total: unlabeledIssues.length,
+                    issues: unlabeledIssues
+                });
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Unknown error occurred');
             } finally {

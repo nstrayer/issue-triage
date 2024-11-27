@@ -29,6 +29,7 @@ export default function Chat() {
   const {
     messages,
     input,
+    append: addMessage,
     handleInputChange,
     handleSubmit,
     addToolResult,
@@ -92,9 +93,11 @@ Remember to:
 
   // Function to handle suggesting labels for an issue
   const handleSuggestLabels = (issueNumber: number) => {
-    handleSubmit(
-      { preventDefault: () => { } } as React.FormEvent<HTMLFormElement>
-    );
+    addMessage({
+      role: 'user',
+      content: `Please suggest labels for issue #${issueNumber}`
+    });
+
   };
 
   // Function to handle retrying the last message
