@@ -4,12 +4,17 @@ import { useChat } from 'ai/react';
 import { useGithubIssues } from './hooks/useGithubIssues';
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { ToolCallArgs, SetSuggestedLabelsArgs } from './types/tools';
 
 // Simple tool interface
 interface Tool {
   name: string;
   description: string;
   execute: () => void;
+}
+
+interface SuggestedLabels {
+  [issueNumber: number]: string[];
 }
 
 export default function Chat() {
@@ -19,15 +24,14 @@ export default function Chat() {
     error: githubError,
   } = useGithubIssues();
 
-  const [aiResponse, setAiResponse] = useState<string>('');
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [suggestedLabels, setSuggestedLabels] = useState<SuggestedLabels>({});
 
   const {
-    messages: toolMessages,
-    input: toolInput,
-    setInput: setUserMessage,
-    handleInputChange: handleToolInputChange,
-    handleSubmit: handleToolSubmit,
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    addToolResult,
     isLoading: isToolLoading,
     error: toolError,
     reload,
@@ -37,39 +41,41 @@ export default function Chat() {
       {
         id: '1',
         role: 'system',
-        content: `You are a helpful AI assistant with access to GitHub repository information. You have three tools available:
+        content: `You are a helpful AI assistant with access to GitHub repository information. You have four tools available:
 
 1. getGithubIssue: Use this to fetch a specific issue by its number
 2. getRepositoryLabels: Use this to get a list of all available labels in the repository
 3. searchIssuesByLabels: Use this to search for issues with specific labels and analyze labeling patterns. You can specify multiple labels and how many recent issues to examine (max 20)
+4. setSuggestedLabels: Use this to set your suggested labels for a specific issue after analyzing it. You should only call this when explicitly asked to suggest labels
 
-When suggesting labels for issues, always follow this process:
-1. If given an issue number, use getGithubIssue to fetch it
+When suggesting labels for issues, follow this process:
+1. Use getGithubIssue to fetch the issue details
 2. Get the list of available labels using getRepositoryLabels
-3. For each label you're considering:
-   - Use searchIssuesByLabels to find 5-10 similar past issues with that label
+3. For each potential label:
+   - Use searchIssuesByLabels to find similar past issues with that label
    - Analyze how the label has been used historically
-   - Reference specific issue numbers when justifying each label suggestion
-   - Include links to referenced issues in the format #[issue_number]
-
-Format your label suggestions as a clear list:
-
-## Suggested Labels
-- \`label-name\`: [Confidence: High/Medium/Low]
-  - Reason: Brief explanation of why this label fits
-  - Similar issues: #123, #456 (used for similar reasons)
-  - Historical usage: How this label has typically been used
-
-## Analysis
-Brief overall analysis of the labeling decision, including any uncertainties or patterns noticed.
+   - Consider if the label fits the current issue
+4. Call setSuggestedLabels with your final suggestions, providing:
+   - The issue number
+   - An array of label names that you think are appropriate
 
 Remember to:
-- Be thorough in your analysis
-- Show your work by referencing specific issues
-- Highlight any uncertainties or deviations from historical patterns
-- Ask for an issue number if one isn't provided in the query`
+- Only suggest labels that exist in the repository (from getRepositoryLabels)
+- Consider both the issue content and historical label usage patterns
+- Base your suggestions on similar past issues
+- Only call setSuggestedLabels when explicitly asked to suggest labels`
       }
     ],
+    async onToolCall({ toolCall }) {
+      if (toolCall.toolName === 'setSuggestedLabels') {
+        const { issueNumber, suggestedLabels: labels } = toolCall.args as SetSuggestedLabelsArgs;
+        setSuggestedLabels(prev => ({
+          ...prev,
+          [issueNumber]: labels
+        }));
+        return `Set ${labels.length} suggested labels for issue #${issueNumber}`;
+      }
+    },
   });
 
   // Add state for tracking which tool results are expanded
@@ -86,8 +92,7 @@ Remember to:
 
   // Function to handle suggesting labels for an issue
   const handleSuggestLabels = (issueNumber: number) => {
-    setUserMessage(`Please suggest labels for issue #${issueNumber}`);
-    handleToolSubmit(
+    handleSubmit(
       { preventDefault: () => { } } as React.FormEvent<HTMLFormElement>
     );
   };
@@ -122,6 +127,23 @@ Remember to:
                   key={issue.number}
                   className="relative group border border-gray-200 rounded-md hover:border-gray-300 transition-colors p-3"
                 >
+                  {/* Show suggested labels if available */}
+                  {suggestedLabels[issue.number] && (
+                    <div className="mb-2 p-2 bg-blue-50 rounded-md">
+                      <div className="text-xs font-medium text-blue-700 mb-1">Suggested Labels:</div>
+                      <div className="flex flex-wrap gap-1">
+                        {suggestedLabels[issue.number].map((label, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full"
+                          >
+                            {label}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Suggest Labels button */}
                   <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
@@ -206,14 +228,14 @@ Remember to:
                     <div className="font-semibold mb-2">System Instructions:</div>
                     <div className="text-gray-600 whitespace-pre-wrap prose prose-sm max-w-none">
                       <ReactMarkdown>
-                        {toolMessages.find(m => m.role === 'system')?.content || ''}
+                        {messages.find(m => m.role === 'system')?.content || ''}
                       </ReactMarkdown>
                     </div>
                   </div>
                 )}
 
                 <div className="mt-4 space-y-4">
-                  {toolMessages
+                  {messages
                     .filter(m => m.role !== 'system')
                     .map(m => (
                       <div
@@ -376,11 +398,11 @@ Remember to:
           {/* Input form at the bottom */}
           <div className="p-4 border-t border-gray-200">
             <div className="max-w-3xl mx-auto">
-              <form onSubmit={handleToolSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <input
                   className="w-full p-2 border border-gray-300 rounded shadow-sm"
-                  value={toolInput}
-                  onChange={handleToolInputChange}
+                  value={input}
+                  onChange={handleInputChange}
                   placeholder="Ask about GitHub issues..."
                   disabled={isToolLoading}
                 />
