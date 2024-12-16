@@ -4,8 +4,8 @@ import { Inter } from 'next/font/google';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'AI SDK - Next.js OpenAI Examples',
-  description: 'Examples of using the AI SDK with Next.js and OpenAI.',
+  title: 'Positron Issue Triage Assistant',
+  description: 'A tool to help triage issues in the Positron repository',
 };
 
 export default function RootLayout({

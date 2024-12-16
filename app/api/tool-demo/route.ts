@@ -4,7 +4,10 @@ import {
     getGithubIssue,
     getRepositoryLabels,
     searchIssuesByLabels,
-    setSuggestedLabels
+    setSuggestedLabels,
+    setIssueStatus,
+    categorizeIssueType,
+    getIssueActivity
 } from './tools';
 
 // Allow streaming responses up to 30 seconds
@@ -24,6 +27,9 @@ export async function POST(req: Request) {
                 getRepositoryLabels,
                 searchIssuesByLabels,
                 setSuggestedLabels,
+                setIssueStatus,
+                categorizeIssueType,
+                getIssueActivity,
             },
         });
 

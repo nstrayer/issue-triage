@@ -20,9 +20,30 @@ export interface GetRepositoryLabelsArgs {
     // Empty object as this tool takes no parameters
 }
 
+export interface SetIssueStatusArgs {
+    issueNumber: number;
+    currentStatus: string | null;
+    suggestedStatus: string;
+    reason: string;
+}
+
+export interface CategorizeIssueTypeArgs {
+    issueNumber: number;
+    issueContent: string;
+    currentLabels: string[];
+}
+
+export interface GetIssueActivityArgs {
+    issueNumber: number;
+    lookbackPeriod?: number;
+}
+
 // Union type of all possible tool call arguments
 export type ToolCallArgs =
     | { toolName: 'getGithubIssue'; args: GetGithubIssueArgs }
     | { toolName: 'searchIssuesByLabels'; args: SearchIssuesByLabelsArgs }
     | { toolName: 'setSuggestedLabels'; args: SetSuggestedLabelsArgs }
-    | { toolName: 'getRepositoryLabels'; args: GetRepositoryLabelsArgs }; 
+    | { toolName: 'getRepositoryLabels'; args: GetRepositoryLabelsArgs }
+    | { toolName: 'setIssueStatus'; args: SetIssueStatusArgs }
+    | { toolName: 'categorizeIssueType'; args: CategorizeIssueTypeArgs }
+    | { toolName: 'getIssueActivity'; args: GetIssueActivityArgs }; 

@@ -1,25 +1,5 @@
 import { useState, useEffect } from 'react';
-
-/**
- * Type definition for GitHub issues data
- */
-interface GitHubData {
-    total: number;
-    issues: Array<{
-        number: number;
-        title: string;
-        state: string;
-        created_at: string;
-        body: string;
-        labels: Array<{
-            name: string;
-            color: string;
-        }>;
-        pull_request?: {
-            url: string;
-        };
-    }>;
-}
+import { GitHubData } from '../services/github';
 
 /**
  * Custom hook to fetch and manage unlabeled GitHub issues
@@ -34,26 +14,31 @@ export function useGithubIssues() {
         const fetchData = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch('/api/github/issues');
+                const [issuesResponse, labelsResponse] = await Promise.all([
+                    fetch('/api/github/issues'),
+                    fetch('/api/github/labels')
+                ]);
 
-                if (!response.ok) {
-                    throw new Error('Failed to fetch GitHub issues');
+                if (!issuesResponse.ok || !labelsResponse.ok) {
+                    throw new Error('Failed to fetch GitHub issues or labels');
                 }
 
-                const issuesData = await response.json();
+                const issuesData = await issuesResponse.json();
+                const labelsData = await labelsResponse.json();
 
-                if ('error' in issuesData) {
-                    throw new Error(issuesData.error);
+                if ('error' in issuesData || 'error' in labelsData) {
+                    throw new Error('Failed to fetch GitHub issues or labels');
                 }
 
                 // Filter for unlabeled issues only
                 const unlabeledIssues = issuesData.issues.filter((issue: GitHubData['issues'][0]) =>
                     issue.labels.length === 0
-                )
+                );
 
                 setGithubData({
                     total: unlabeledIssues.length,
-                    issues: unlabeledIssues
+                    issues: unlabeledIssues,
+                    labels: labelsData
                 });
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Unknown error occurred');
