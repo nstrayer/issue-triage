@@ -1,7 +1,7 @@
 'use client';
 
+import React, { useState } from 'react';
 import { useChat } from 'ai/react';
-import { useState } from 'react';
 import { SetSuggestedLabelsArgs } from './types/tools';
 import { SuggestedLabels, ExpandedTools, GithubIssue } from './types/chat';
 import { Sidebar } from './components/Sidebar';
@@ -15,7 +15,6 @@ export default function Chat() {
   const {
     issues,
     labels,
-    total,
     isLoading: isLoadingGithub,
     error: githubError,
   } = useIssuesWithoutStatus();
@@ -131,9 +130,9 @@ export default function Chat() {
   return (
     <div className="flex h-screen">
       {/* Title bar */}
-      <div className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center px-4 z-10">
+      <header className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center px-4 z-10">
         <h1 className="text-xl font-bold text-gray-800">Positron Issue Triage</h1>
-      </div>
+      </header>
 
       {/* Main content with padding for title bar */}
       <div className="flex w-full pt-14">
@@ -149,7 +148,7 @@ export default function Chat() {
         />
 
         {/* Main chat interface */}
-        <div className="flex-1 flex flex-col h-full">
+        <main className="flex-1 flex flex-col h-full">
           <div className="flex-1 overflow-y-auto p-4">
             <div className="max-w-3xl mx-auto">
               {/* System Prompt */}
@@ -207,7 +206,7 @@ export default function Chat() {
             onInputChange={handleInputChange}
             onSubmit={handleSubmit}
           />
-        </div>
+        </main>
       </div>
     </div>
   );

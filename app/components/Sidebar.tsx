@@ -98,7 +98,7 @@ export function Sidebar({
                 {issue.title}
               </div>
               <div className="text-xs text-gray-500 mt-1">
-                Created: {new Date(issue.created_at).toLocaleDateString()}
+                Created: {new Date(issue.createdAt).toLocaleDateString()}
               </div>
             </div>
           ))}
