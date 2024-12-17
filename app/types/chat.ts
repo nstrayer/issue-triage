@@ -1,225 +1,276 @@
+/**
+ * Represents a tool that can be invoked in the chat application.
+ */
 export interface Tool {
+  /**
+   * The name of the tool.
+   */
   name: string;
+
+  /**
+   * A brief description of the tool's functionality.
+   */
   description: string;
+
+  /**
+   * Executes the tool's action.
+   */
   execute: () => void;
 }
 
-export type SuggestedLabels  = Record<number, string[]>
+/**
+ * A mapping of issue numbers to arrays of suggested label names.
+ */
+export type SuggestedLabels = Record<number, string[]>;
 
+/**
+ * A mapping of tool call IDs to a boolean indicating if the tool is expanded in the UI.
+ */
 export type ExpandedTools = Record<string, boolean>;
-  
+
+/**
+ * Represents a tool invocation within a chat message.
+ */
 export interface ToolInvocation {
+  /**
+   * A unique identifier for the tool call.
+   */
   toolCallId: string;
+
+  /**
+   * The name of the tool that was invoked.
+   */
   toolName: string;
+
+  /**
+   * Optional arguments provided to the tool.
+   */
   args?: Record<string, unknown>;
+
+  /**
+   * The current state of the tool invocation.
+   */
   state?: string;
+
+  /**
+   * The result returned by the tool.
+   */
   result?: string | Record<string, unknown>;
 }
 
+/**
+ * Represents a chat message in the application.
+ */
 export interface ChatMessage {
+  /**
+   * A unique identifier for the message.
+   */
   id: string;
+
+  /**
+   * The role of the sender.
+   */
   role: 'user' | 'assistant' | 'system' | 'data';
+
+  /**
+   * The content of the message.
+   */
   content: string;
+
+  /**
+   * Optional array of tool invocations associated with the message.
+   */
   toolInvocations?: ToolInvocation[];
 }
 
+/**
+ * Represents a GitHub user.
+ */
 export interface GitHubUser {
-    login: string;
-    id: number;
-    node_id: string;
-    avatar_url: string;
-    gravatar_id: string;
-    url: string;
-    html_url: string;
-    type: string;
-    site_admin: boolean;
+  login: string;
+  id: number;
+  node_id: string;
+  avatar_url: string;
+  gravatar_id: string;
+  url: string;
+  html_url: string;
+  type: string;
+  site_admin: boolean;
 }
-
-export interface GitHubIssueLabel {
-    id: number;
-    node_id: string;
-    url: string;
-    name: string;
-    color: string;
-    description: string | null;
-    default: boolean;
-}
-
-export interface GitHubReactions {
-    url: string;
-    total_count: number;
-    '+1': number;
-    '-1': number;
-    laugh: number;
-    hooray: number;
-    confused: number;
-    heart: number;
-    rocket: number;
-    eyes: number;
-}
-
-export interface SubIssuesSummary {
-    total: number;
-    completed: number;
-    percent_completed: number;
-}
-
-
-export interface GitHubLabel {
-    name: string;
-    color: string;
-    description: string | null;
-}
-
-export interface GitHubData {
-    total: number;
-    issues: GithubIssue[];
-    labels: GitHubLabel[];
-}
-
 
 /**
- * Configuration for the GitHub service
+ * Represents a label on a GitHub issue.
+ */
+export interface GitHubIssueLabel {
+  id: number;
+  node_id: string;
+  url: string;
+  name: string;
+  color: string;
+  description: string | null;
+  default: boolean;
+}
+
+/**
+ * Represents reactions on a GitHub issue or comment.
+ */
+export interface GitHubReactions {
+  url: string;
+  total_count: number;
+  '+1': number;
+  '-1': number;
+  laugh: number;
+  hooray: number;
+  confused: number;
+  heart: number;
+  rocket: number;
+  eyes: number;
+}
+
+/**
+ * Summary of sub-issues within a larger issue.
+ */
+export interface SubIssuesSummary {
+  total: number;
+  completed: number;
+  percent_completed: number;
+}
+
+/**
+ * Simplified representation of a GitHub label.
+ */
+export interface GitHubLabel {
+  /**
+   * The name of the label.
+   */
+  name: string;
+
+  /**
+   * The color of the label in hex format.
+   */
+  color: string;
+
+  /**
+   * The description of the label.
+   */
+  description: string | null;
+}
+
+/**
+ * Represents GitHub data including issues and labels.
+ */
+export interface GitHubData {
+  /**
+   * The total number of issues.
+   */
+  total: number;
+
+  /**
+   * An array of GitHub issues.
+   */
+  issues: GithubIssue[];
+
+  /**
+   * An array of GitHub labels.
+   */
+  labels: GitHubLabel[];
+}
+
+/**
+ * Configuration settings for the GitHub service.
  */
 export interface GitHubConfig {
-    owner: string;
-    repo: string;
-    auth: string;
-    timeoutMs?: number;
-    projectName?: string; // Name of the GitHub project to track
+  /**
+   * The GitHub repository owner.
+   */
+  owner: string;
+
+  /**
+   * The GitHub repository name.
+   */
+  repo: string;
+
+  /**
+   * The authentication token for GitHub API access.
+   */
+  auth: string;
+
+  /**
+   * Optional timeout setting in milliseconds.
+   */
+  timeoutMs?: number;
+
+  /**
+   * The name of the GitHub project to track.
+   */
+  projectName?: string;
 }
 
-export interface ProjectIssueStatus {
-    issueNumber: number;
-    title: string;
-    status: string | null;
-}
-
-// Add these interfaces near the top of the file
-export interface ProjectV2ItemNode {
-    content?: {
-        number: number;
-        title: string;
-    };
-    fieldValues: {
-        nodes: Array<{
-            name?: string;
-            field?: {
-                name: string;
-            };
-        }>;
-    };
-}
-
-
-export type GithubIssueResponse = {
+/**
+ * Response type for GitHub GraphQL queries fetching issues.
+ */
+export interface GithubIssueResponse {
   repository: {
     issues: {
-      nodes: Array<{
-        title: string;
-        number: number;
-        createdAt: string;
-        url: string;
-        body: string;
-        state: string;
-        pull_request?: unknown;
-        author: {
-          login: string;
-          avatarUrl: string;
-        };
-        labels: {
-          nodes: Array<{
-            name: string;
-            color: string;
-          }>;
-        };
-        assignees: {
-          nodes: Array<{
-            login: string;
-            avatarUrl: string;
-          }>;
-        };
-        projectItems: {
-          nodes: Array<{
-            fieldValues: {
-              nodes: Array<{
-                text?: string;
-                date?: string;
-                name?: string;
-                field: {
-                  name: string;
-                };
-              }>;
-            };
-          }>;
-        };
-      }>;
+      nodes: GithubIssueNode[];
     };
   };
-};
-
-export type GithubIssue = GithubIssueResponse['repository']['issues']['nodes'][number] & {
-    labelsParsed: Array<string>;
-};
-
-export type GithubIssueFlat = Omit<GithubIssue, 'projectItems'>;
-
-// Union type for different field values
-type ProjectFieldValue = 
-  | ProjectTextFieldValue 
-  | ProjectDateFieldValue 
-  | ProjectSingleSelectFieldValue;
-
-type BaseFieldValue = {
-  field: {
-    name: string;
-  };
-};
-
-type ProjectTextFieldValue = BaseFieldValue & {
-  text: string;
-};
-
-type ProjectDateFieldValue = BaseFieldValue & {
-  date: string;
-};
-
-type ProjectSingleSelectFieldValue = {
-  name: string;
-  field: {
-    name: string;
-  };
-};
-
-// Helper type to get a single issue from the response
-type Issue = GithubIssueResponse['repository']['issues']['nodes'][number];
-
-// Helper type to get field values for an issue
-type IssueFieldValues = Issue['projectItems']['nodes'][number]['fieldValues']['nodes'];
-
-interface ProjectV2Response {
-    node: {
-        items: {
-            nodes: Array<{
-                id: string;
-                content?: {
-                    number: number;
-                    title: string;
-                    state: string;
-                };
-                fieldValues: {
-                    nodes: Array<{
-                        name?: string;
-                        field?: {
-                            name: string;
-                        };
-                    }>;
-                };
-            }>;
-            pageInfo: {
-                hasNextPage: boolean;
-                endCursor: string;
-            };
-        };
-    };
 }
+
+/**
+ * Represents a node (issue) within the GitHub GraphQL response.
+ */
+export interface GithubIssueNode {
+  title: string;
+  number: number;
+  createdAt: string;
+  url: string;
+  body: string;
+  state: string;
+  pull_request?: unknown;
+  author: {
+    login: string;
+    avatarUrl: string;
+  };
+  labels: {
+    nodes: Array<{
+      name: string;
+      color: string;
+    }>;
+  };
+  assignees: {
+    nodes: Array<{
+      login: string;
+      avatarUrl: string;
+    }>;
+  };
+  projectItems: {
+    nodes: Array<{
+      fieldValues: {
+        nodes: Array<{
+          text?: string;
+          date?: string;
+          name?: string;
+          field: {
+            name: string;
+          };
+        }>;
+      };
+    }>;
+  };
+}
+
+/**
+ * Represents a GitHub issue with parsed label names.
+ */
+export type GithubIssue = GithubIssueNode & {
+  /**
+   * An array of label names extracted from the issue.
+   */
+  labelsParsed: string[];
+};
+
+/**
+ * Represents a flattened GitHub issue without project items.
+ */
+export type GithubIssueFlat = Omit<GithubIssue, 'projectItems'>;
