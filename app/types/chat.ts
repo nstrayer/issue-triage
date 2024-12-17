@@ -64,41 +64,6 @@ export interface SubIssuesSummary {
     percent_completed: number;
 }
 
-export interface GithubIssue {
-    url: string;
-    labels_url: string;
-    comments_url: string;
-    events_url: string;
-    html_url: string;
-    id: number;
-    node_id: string;
-    number: number;
-    title: string;
-    user: GitHubUser;
-    labels: GitHubIssueLabel[];
-    labelsCleaned: Array<{
-        name: string;
-        color: string;
-    }>;
-    state: string;
-    locked: boolean;
-    assignee: GitHubUser | null;
-    assignees: GitHubUser[];
-    milestone: unknown | null;
-    comments: number;
-    created_at: string;
-    updated_at: string;
-    closed_at: string | null;
-    author_association: string;
-    body: string | null;
-    reactions: GitHubReactions;
-    timeline_url: string;
-    performed_via_github_app: unknown | null;
-    state_reason: string | null;
-    sub_issues_summary: SubIssuesSummary;
-    active_lock_reason: string | null;
-    pull_request?: unknown;
-}
 
 export interface GitHubLabel {
     name: string;
@@ -110,4 +75,151 @@ export interface GitHubData {
     total: number;
     issues: GithubIssue[];
     labels: GitHubLabel[];
+}
+
+
+/**
+ * Configuration for the GitHub service
+ */
+export interface GitHubConfig {
+    owner: string;
+    repo: string;
+    auth: string;
+    timeoutMs?: number;
+    projectName?: string; // Name of the GitHub project to track
+}
+
+export interface ProjectIssueStatus {
+    issueNumber: number;
+    title: string;
+    status: string | null;
+}
+
+// Add these interfaces near the top of the file
+export interface ProjectV2ItemNode {
+    content?: {
+        number: number;
+        title: string;
+    };
+    fieldValues: {
+        nodes: Array<{
+            name?: string;
+            field?: {
+                name: string;
+            };
+        }>;
+    };
+}
+
+
+export type GithubIssueResponse = {
+  repository: {
+    issues: {
+      nodes: Array<{
+        title: string;
+        number: number;
+        createdAt: string;
+        url: string;
+        body: string;
+        state: string;
+        pull_request?: unknown;
+        author: {
+          login: string;
+          avatarUrl: string;
+        };
+        labels: {
+          nodes: Array<{
+            name: string;
+            color: string;
+          }>;
+        };
+        assignees: {
+          nodes: Array<{
+            login: string;
+            avatarUrl: string;
+          }>;
+        };
+        projectItems: {
+          nodes: Array<{
+            fieldValues: {
+              nodes: Array<{
+                text?: string;
+                date?: string;
+                name?: string;
+                field: {
+                  name: string;
+                };
+              }>;
+            };
+          }>;
+        };
+      }>;
+    };
+  };
+};
+
+export type GithubIssue = GithubIssueResponse['repository']['issues']['nodes'][number] & {
+    labelsParsed: Array<string>;
+};
+
+export type GithubIssueFlat = Omit<GithubIssue, 'projectItems'>;
+
+// Union type for different field values
+type ProjectFieldValue = 
+  | ProjectTextFieldValue 
+  | ProjectDateFieldValue 
+  | ProjectSingleSelectFieldValue;
+
+type BaseFieldValue = {
+  field: {
+    name: string;
+  };
+};
+
+type ProjectTextFieldValue = BaseFieldValue & {
+  text: string;
+};
+
+type ProjectDateFieldValue = BaseFieldValue & {
+  date: string;
+};
+
+type ProjectSingleSelectFieldValue = {
+  name: string;
+  field: {
+    name: string;
+  };
+};
+
+// Helper type to get a single issue from the response
+type Issue = GithubIssueResponse['repository']['issues']['nodes'][number];
+
+// Helper type to get field values for an issue
+type IssueFieldValues = Issue['projectItems']['nodes'][number]['fieldValues']['nodes'];
+
+interface ProjectV2Response {
+    node: {
+        items: {
+            nodes: Array<{
+                id: string;
+                content?: {
+                    number: number;
+                    title: string;
+                    state: string;
+                };
+                fieldValues: {
+                    nodes: Array<{
+                        name?: string;
+                        field?: {
+                            name: string;
+                        };
+                    }>;
+                };
+            }>;
+            pageInfo: {
+                hasNextPage: boolean;
+                endCursor: string;
+            };
+        };
+    };
 }
