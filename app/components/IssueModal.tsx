@@ -80,11 +80,11 @@ export function IssueModal({
             </div>
 
             {/* Current Labels */}
-            {issue.labels && issue.labels.length > 0 && (
+            {issue.labelsCleaned && issue.labelsCleaned.length > 0 && (
               <div className="mb-6">
                 <h4 className="text-sm font-medium text-gray-700 mb-2">Current Labels:</h4>
                 <div className="flex flex-wrap gap-2">
-                  {issue.labels.map((label, index) => (
+                  {issue.labelsCleaned.map((label, index) => (
                     <span
                       key={index}
                       className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full"

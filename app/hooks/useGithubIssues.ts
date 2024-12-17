@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { GitHubData } from '../services/github';
+import { GitHubData } from '../types/chat';
 
 /**
  * Custom hook to fetch and manage unlabeled GitHub issues
@@ -32,7 +32,7 @@ export function useGithubIssues() {
 
                 // Filter for unlabeled issues only
                 const unlabeledIssues = issuesData.issues.filter((issue: GitHubData['issues'][0]) =>
-                    issue.labels.length === 0
+                    issue.labelsCleaned.length === 0
                 );
 
                 setGithubData({

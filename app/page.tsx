@@ -1,7 +1,6 @@
 'use client';
 
 import { useChat } from 'ai/react';
-import { useGithubIssues } from './hooks/useGithubIssues';
 import { useState } from 'react';
 import { SetSuggestedLabelsArgs } from './types/tools';
 import { SuggestedLabels, ExpandedTools, GithubIssue } from './types/chat';
@@ -10,13 +9,16 @@ import { ChatInput } from './components/ChatInput';
 import { ChatMessage } from './components/ChatMessage';
 import { SystemPrompt } from './components/SystemPrompt';
 import { getSystemPrompt } from './config/systemPrompt';
+import { useIssuesWithoutStatus } from './hooks/useIssuesWithoutStatus';
 
 export default function Chat() {
   const {
-    githubData,
+    issues,
+    labels,
+    total,
     isLoading: isLoadingGithub,
     error: githubError,
-  } = useGithubIssues();
+  } = useIssuesWithoutStatus();
 
   const [suggestedLabels, setSuggestedLabels] = useState<SuggestedLabels>({});
   const [expandedTools, setExpandedTools] = useState<ExpandedTools>({});
@@ -24,7 +26,7 @@ export default function Chat() {
   const [isApplyingLabels, setIsApplyingLabels] = useState(false);
   
   // Get the system prompt using the configuration function
-  const systemPrompt = getSystemPrompt(githubData?.labels?.map(label => label.name) || []);
+  const systemPrompt = getSystemPrompt(labels?.map(label => label.name) || []);
 
   const {
     messages,
@@ -138,8 +140,8 @@ export default function Chat() {
         {/* Sidebar */}
         <Sidebar
           isLoadingGithub={isLoadingGithub}
-          githubError={githubError ? new Error(githubError) : null}
-          issues={githubData?.issues as GithubIssue[] | undefined}
+          githubError={githubError}
+          issues={issues}
           suggestedLabels={suggestedLabels}
           onSuggestActions={handleSuggestActions}
           onApplyLabels={handleApplyLabels}
