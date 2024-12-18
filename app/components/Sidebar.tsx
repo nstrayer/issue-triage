@@ -102,7 +102,7 @@ export function Sidebar({
   };
 
   return (
-    <div className="w-80 h-full border-r border-gray-200 p-4 overflow-y-auto">
+    <div className="h-full border-r border-gray-200 p-4 overflow-y-auto">
       {/* Issues Section */}
       <IssuesSection
         isLoadingGithub={isLoadingGithub}
