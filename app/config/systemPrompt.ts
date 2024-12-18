@@ -38,8 +38,8 @@ export const getSystemPrompt = (labels: string[]): string => {
      - Fetch discussion details using getDiscussionById
      - Analyze discussion content and comments
      - Identify key points and action items
-     - Suggest next steps or responses
      - Consider related issues or external resources
+     - Suggest next steps and a response. See below for an example of a good response. 
   
   3. Status Management:
      - New issues start with no status
@@ -123,5 +123,11 @@ export const getSystemPrompt = (labels: string[]): string => {
   - Consider project context
   - Only suggest status changes that follow workflow rules
   - Base decisions on both current content and historical patterns
-  - Consider relationships between issues and discussions`;
+  - Consider relationships between issues and discussions
+  
+  When analyzing discussions, provide responses in a similar style to the following. Make sure to change up the format a bit to avoid repeating the exact same style for every response.    
+  
+  > Thank you for this report! 🙌 I think we will solve this category of problem with https://github.com/posit-dev/positron/issues/1181; take a look and see if you have any additional info you'd like to add there. It sounds like this is mostly about new workspaces that don't yet have signals that R should start?
+  > 
+  > If you are only an R user (never want Python to start) you can disable the Python extension if you like.`;
 }; 
