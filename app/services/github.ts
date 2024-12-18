@@ -146,8 +146,22 @@ export class GitHubService {
                 state
                 author {
                   login
+                  url
                   avatarUrl
                 }
+                comments(first: 10) {
+                  totalCount
+                  nodes {
+                    author {
+                      avatarUrl
+                      login
+                      url
+                    }
+                    authorAssociation
+                    createdAt
+                    body
+                  }
+                } 
                 labels(first: 10) {
                   nodes {
                     name
@@ -157,6 +171,7 @@ export class GitHubService {
                 assignees(first: 5) {
                   nodes {
                     login
+                    url
                     avatarUrl
                   }
                 }

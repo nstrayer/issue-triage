@@ -30,7 +30,7 @@ interface SidebarProps {
   /**
    * Callback invoked when the user requests suggested actions for an issue.
    */
-  onSuggestActions: (issueNumber: number) => void;
+  onSuggestActions: (issueNumber: number|string) => void;
 
   /**
    * Callback invoked when the user applies labels to an issue.

@@ -228,9 +228,10 @@ export interface GithubIssueNode {
   body: string;
   state: string;
   pull_request?: unknown;
-  author: {
-    login: string;
-    avatarUrl: string;
+  author: GithubUser;
+  comments: {
+    totalCount: number;
+    nodes: GithubDiscussionComment[];
   };
   labels: {
     nodes: Array<{
@@ -239,10 +240,7 @@ export interface GithubIssueNode {
     }>;
   };
   assignees: {
-    nodes: Array<{
-      login: string;
-      avatarUrl: string;
-    }>;
+    nodes: Array<GithubUser>;
   };
   projectItems: {
     nodes: Array<{

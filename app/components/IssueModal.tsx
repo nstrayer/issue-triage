@@ -136,13 +136,48 @@ export function IssueModal({
             <div className="prose prose-gray prose-headings:font-semibold prose-a:text-blue-600 prose-code:text-blue-600 prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-200 max-w-none">
               <ReactMarkdown>{cleanBody}</ReactMarkdown>
             </div>
+
+            {/* Comments Section */}
+            {issue.comments.nodes.length > 0 && (
+              <div className="mt-8">
+                <h4 className="text-lg font-medium text-gray-900 mb-4">Comments ({issue.comments.totalCount})</h4>
+                <div className="space-y-6">
+                  {issue.comments.nodes.map((comment, index) => (
+                    <div key={index} className="border-t border-gray-200 pt-4">
+                      {/* Comment Author Information */}
+                      <div className="flex items-center gap-2 mb-4">
+                        <img
+                          src={comment.author.avatarUrl}
+                          alt={`${comment.author.login}'s avatar`}
+                          className="w-5 h-5 rounded-full"
+                        />
+                        <span className="text-sm text-gray-600">
+                          {comment.author.login}
+                        </span>
+                        {comment.authorAssociation !== 'NONE' && (
+                          <span className="text-xs text-gray-400">
+                            ({comment.authorAssociation.toLowerCase()})
+                          </span>
+                        )}
+                        <span className="text-xs text-gray-400">
+                          • {new Date(comment.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="prose prose-gray prose-sm max-w-none">
+                        <ReactMarkdown>{comment.body}</ReactMarkdown>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Footer */}
         <div className="border-t border-gray-200 px-6 py-4 bg-gray-50">
           <div className="text-sm text-gray-500">
-            To view comments, reactions, and participate in the discussion, please use the "Open in GitHub" button.
+            To participate in the discussion, please use the "Open in GitHub" button.
           </div>
         </div>
       </div>

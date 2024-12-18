@@ -14,7 +14,7 @@ export function SystemPrompt({
   return (
     <div className="mb-8">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">GitHub Issue Summary Tool</h2>
+        <h3 className="text-xl font-bold">Helper Chat</h3>
         <button
           onClick={onToggleVisibility}
           className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1"

@@ -142,7 +142,7 @@ export default function Chat() {
     <div className="flex h-screen">
       {/* Title bar */}
       <header className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center px-4 z-10">
-        <h1 className="text-xl font-bold text-gray-800">Positron Issue Triage</h1>
+        <h1 className="text-xl font-bold text-gray-800">Positron Intake Assistant</h1>
       </header>
 
       {/* Main content with padding for title bar */}
