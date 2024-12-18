@@ -1,5 +1,5 @@
 import { Octokit, RestEndpointMethodTypes } from '@octokit/rest';
-import { GitHubConfig, GithubIssue, GithubIssueResponse, GitHubLabel } from '../types/chat';
+import { GitHubConfig, GithubDiscussion, GithubDiscussionResponse, GithubIssue, GithubIssueResponse, GitHubLabel } from '../types/chat';
 
 /**
  * Represents a GitHub issue as returned by Octokit.
@@ -222,6 +222,68 @@ export class GitHubService {
         throw new Error(`Failed to fetch issues from Intake view: ${error.message}`);
       }
       throw new Error('Failed to fetch issues from Intake view due to an unknown error.');
+    }
+  }
+
+  /**
+   * Fetches discussions from the repository.
+   * @param limit The maximum number of discussions to fetch (default: 10)
+   * @returns A promise resolving to an array of GitHub discussions and their total count
+   */
+  async fetchDiscussions(limit: number = 10): Promise<{ discussions: GithubDiscussion[]; totalCount: number }> {
+    try {
+      const query = `
+        {
+          repository(owner: "${this.owner}", name: "${this.repo}") {
+            discussions(
+              first: ${limit}
+              orderBy: {field: CREATED_AT, direction: DESC}
+            ) {
+              nodes {
+                id
+                url
+                author {
+                  avatarUrl
+                  login
+                  url
+                }
+                authorAssociation
+                createdAt
+                closed
+                title
+                body
+                bodyText
+                isAnswered
+                comments(first: 10) {
+                  totalCount
+                  nodes {
+                    author {
+                      avatarUrl
+                      login
+                      url
+                    }
+                    authorAssociation
+                    createdAt
+                    body
+                  }
+                } 
+              }
+            }
+          }
+        }`;
+
+      const response = await this.octokit.graphql<GithubDiscussionResponse>(query);
+
+      return {
+        discussions: response.repository.discussions.nodes,
+        totalCount: response.repository.discussions.totalCount
+      };
+    } catch (error) {
+      console.error('Error fetching discussions:', error);
+      if (error instanceof Error) {
+        throw new Error(`Failed to fetch discussions: ${error.message}`);
+      }
+      throw new Error('Failed to fetch discussions due to an unknown error.');
     }
   }
 }

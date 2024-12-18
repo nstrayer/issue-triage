@@ -274,3 +274,67 @@ export type GithubIssue = GithubIssueNode & {
  * Represents a flattened GitHub issue without project items.
  */
 export type GithubIssueFlat = Omit<GithubIssue, 'projectItems'>;
+
+/**
+ * Represents a GitHub discussion comment
+ */
+export interface GithubDiscussionComment {
+  body: string;
+  author: GithubUser;
+  authorAssociation: AuthorAssociation;
+  createdAt: string;
+}
+
+/**
+ * Represents the possible author associations with a repository.
+ */
+type AuthorAssociation = 
+  | 'MEMBER'
+  | 'OWNER'
+  | 'MANNEQUIN'
+  | 'COLLABORATOR'
+  | 'CONTRIBUTOR'
+  | 'FIRST_TIME_CONTRIBUTOR'
+  | 'FIRST_TIMER'
+  | 'NONE';
+
+/**
+ * Represents a GitHub user.
+ */
+type GithubUser = {
+  avatarUrl: string;
+  login: string;
+  url: string;
+};
+
+/**
+ * Represents a GitHub discussion.
+ */
+export type GithubDiscussion = {
+  id: string;
+  author: GithubUser;
+  authorAssociation: AuthorAssociation;
+  createdAt: string;
+  closed: boolean;
+  title: string;
+  body: string;
+  bodyText: string;
+  isAnswered: boolean;
+  url: string;
+  comments: {
+    totalCount: number;
+    nodes: GithubDiscussionComment[];
+  };
+};
+
+/**
+ * Represents the response structure for GitHub discussions query.
+ */
+export type GithubDiscussionResponse = {
+  repository: {
+    discussions: {
+      totalCount: number;
+      nodes: GithubDiscussion[];
+    };
+  };
+};

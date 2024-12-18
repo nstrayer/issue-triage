@@ -38,6 +38,14 @@ export interface GetIssueActivityArgs {
     lookbackPeriod?: number;
 }
 
+export interface SearchExternalContentArgs {
+    query: string;
+    country?: string;
+    search_lang?: string;
+    result_filter?: string[];
+    summary?: boolean;
+}
+
 // Union type of all possible tool call arguments
 export type ToolCallArgs =
     | { toolName: 'getGithubIssue'; args: GetGithubIssueArgs }
@@ -46,4 +54,5 @@ export type ToolCallArgs =
     | { toolName: 'getRepositoryLabels'; args: GetRepositoryLabelsArgs }
     | { toolName: 'setIssueStatus'; args: SetIssueStatusArgs }
     | { toolName: 'categorizeIssueType'; args: CategorizeIssueTypeArgs }
-    | { toolName: 'getIssueActivity'; args: GetIssueActivityArgs }; 
+    | { toolName: 'getIssueActivity'; args: GetIssueActivityArgs }
+    | { toolName: 'searchExternalContent'; args: SearchExternalContentArgs }; 

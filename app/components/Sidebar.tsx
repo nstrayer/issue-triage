@@ -1,17 +1,68 @@
 import { useState } from 'react';
-import { GithubIssue, SuggestedLabels } from '../types/chat';
+import { GithubIssue, SuggestedLabels, GithubDiscussion } from '../types/chat';
 import { IssueModal } from './IssueModal';
+import { DiscussionModal } from './DiscussionModal';
+import { useGithubDiscussions } from '../hooks/useGithubDiscussions';
+import { IssuesSection } from './IssuesSection';
+import { DiscussionsSection } from './DiscussionsSection';
 
 interface SidebarProps {
+  /**
+   * Whether GitHub issues are currently loading.
+   */
   isLoadingGithub: boolean;
+
+  /**
+   * Any error that occurred while loading GitHub issues.
+   */
   githubError: Error | null;
+
+  /**
+   * Array of fetched GitHub issues.
+   */
   issues: GithubIssue[] | undefined;
+
+  /**
+   * A mapping of issue numbers to suggested labels.
+   */
   suggestedLabels: SuggestedLabels;
+
+  /**
+   * Callback invoked when the user requests suggested actions for an issue.
+   */
   onSuggestActions: (issueNumber: number) => void;
+
+  /**
+   * Callback invoked when the user applies labels to an issue.
+   */
   onApplyLabels: (issueNumber: number, labels: string[]) => void;
+
+  /**
+   * Whether labels are currently being applied.
+   */
   isApplyingLabels: boolean;
 }
 
+/**
+ * The main Sidebar component that houses issue and discussion data,
+ * along with modals for viewing details. This component coordinates
+ * state for the modals and integrates the IssuesSection and
+ * DiscussionsSection for display in a unified layout.
+ *
+ * @param props SidebarProps
+ * @returns A React component rendering the sidebar
+ *
+ * @example
+ * <Sidebar
+ *   isLoadingGithub={false}
+ *   githubError={null}
+ *   issues={[...]}
+ *   suggestedLabels={{ ... }}
+ *   onSuggestActions={() => {...}}
+ *   onApplyLabels={() => {...}}
+ *   isApplyingLabels={false}
+ * />
+ */
 export function Sidebar({
   isLoadingGithub,
   githubError,
@@ -21,101 +72,76 @@ export function Sidebar({
   onApplyLabels,
   isApplyingLabels,
 }: SidebarProps) {
+  // Local state for tracking selected issue/discussion and modal visibility
   const [selectedIssue, setSelectedIssue] = useState<GithubIssue | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isIssueModalOpen, setIsIssueModalOpen] = useState(false);
+  const [selectedDiscussion, setSelectedDiscussion] = useState<GithubDiscussion | null>(null);
+  const [isDiscussionModalOpen, setIsDiscussionModalOpen] = useState(false);
+
+  // Fetch discussions
+  const {
+    discussions,
+    isLoading: isLoadingDiscussions,
+    error: discussionsError
+  } = useGithubDiscussions();
+
+  /**
+   * Handles when a user selects an issue to view details.
+   */
+  const handleIssueSelect = (issue: GithubIssue): void => {
+    setSelectedIssue(issue);
+    setIsIssueModalOpen(true);
+  };
+
+  /**
+   * Handles when a user selects a discussion to view.
+   */
+  const handleDiscussionSelect = (discussion: GithubDiscussion): void => {
+    setSelectedDiscussion(discussion);
+    setIsDiscussionModalOpen(true);
+  };
 
   return (
     <div className="w-80 h-full border-r border-gray-200 p-4 overflow-y-auto">
-      <h2 className="text-lg font-bold mb-4">Unlabeled Issues</h2>
-      {isLoadingGithub ? (
-        <div className="text-gray-500">Loading issues...</div>
-      ) : githubError ? (
-        <div className="text-red-500">{githubError.message}</div>
-      ) : issues ? (
-        <div className="space-y-3">
-          {issues.map(issue => (
-            <div
-              key={issue.number}
-              className="relative group border border-gray-200 rounded-md hover:border-gray-300 transition-colors p-3"
-            >
-              {/* Show suggested labels if available */}
-              {suggestedLabels[issue.number] && (
-                <div className="mb-2 p-2 bg-blue-50 rounded-md">
-                  <div className="text-xs font-medium text-blue-700 mb-1">Suggested Labels:</div>
-                  <div className="flex flex-wrap gap-1">
-                    {suggestedLabels[issue.number].map((label, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full"
-                      >
-                        {label}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
+      {/* Issues Section */}
+      <IssuesSection
+        isLoadingGithub={isLoadingGithub}
+        githubError={githubError}
+        issues={issues}
+        suggestedLabels={suggestedLabels}
+        onSuggestActions={onSuggestActions}
+        onIssueSelect={handleIssueSelect}
+      />
 
-              {/* Action buttons */}
-              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                <button
-                  onClick={() => {
-                    setSelectedIssue(issue);
-                    setIsModalOpen(true);
-                  }}
-                  className="px-3 py-1 bg-white text-sm font-medium text-gray-600 rounded-md shadow hover:bg-gray-50 transition-colors"
-                >
-                  View Details
-                </button>
-                <button
-                  onClick={() => onSuggestActions(issue.number)}
-                  className="px-2 py-1 text-sm font-medium text-blue-600 hover:text-blue-500"
-                >
-                  Suggest Actions
-                </button>
-              </div>
-
-              <div className="flex items-center gap-2 mb-1">
-                <span className={`px-2 py-0.5 text-xs rounded ${
-                  issue.state === 'open'
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-purple-100 text-purple-800'
-                }`}>
-                  {issue.state}
-                </span>
-                <span className="text-sm text-gray-600">#{issue.number}</span>
-                <a
-                  href={`https://github.com/posit-dev/positron/issues/${issue.number}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-              </div>
-              <div className="text-sm font-medium truncate">
-                {issue.title}
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                Created: {new Date(issue.createdAt).toLocaleDateString()}
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : null}
+      {/* Discussions Section */}
+      <DiscussionsSection
+        discussions={discussions}
+        isLoadingDiscussions={isLoadingDiscussions}
+        discussionsError={discussionsError}
+        onDiscussionSelect={handleDiscussionSelect}
+      />
 
       {/* Issue Modal */}
       <IssueModal
         issue={selectedIssue}
-        isOpen={isModalOpen}
+        isOpen={isIssueModalOpen}
         onClose={() => {
-          setIsModalOpen(false);
+          setIsIssueModalOpen(false);
           setSelectedIssue(null);
         }}
         suggestedLabels={selectedIssue ? suggestedLabels[selectedIssue.number] : []}
         onApplyLabels={onApplyLabels}
         isApplyingLabels={isApplyingLabels}
+      />
+
+      {/* Discussion Modal */}
+      <DiscussionModal
+        discussion={selectedDiscussion}
+        isOpen={isDiscussionModalOpen}
+        onClose={() => {
+          setIsDiscussionModalOpen(false);
+          setSelectedDiscussion(null);
+        }}
       />
     </div>
   );
