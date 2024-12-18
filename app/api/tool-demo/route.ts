@@ -8,7 +8,8 @@ import {
     setIssueStatus,
     categorizeIssueType,
     getIssueActivity,
-    searchExternalContent
+    searchExternalContent,
+    getDiscussionById
 } from './tools';
 
 // Allow streaming responses up to 30 seconds
@@ -31,7 +32,8 @@ export async function POST(req: Request) {
                 setIssueStatus,
                 categorizeIssueType,
                 getIssueActivity,
-                searchExternalContent
+                searchExternalContent,
+                getDiscussionById
             },
         });
 

@@ -338,3 +338,7 @@ export type GithubDiscussionResponse = {
     };
   };
 };
+
+export type GithubDiscussionByIdResponse = {
+  node: GithubDiscussion;
+};

@@ -1,5 +1,5 @@
 import { Octokit, RestEndpointMethodTypes } from '@octokit/rest';
-import { GitHubConfig, GithubDiscussion, GithubDiscussionResponse, GithubIssue, GithubIssueResponse, GitHubLabel } from '../types/chat';
+import { GitHubConfig, GithubDiscussion, GithubDiscussionByIdResponse, GithubDiscussionResponse, GithubIssue, GithubIssueResponse, GitHubLabel } from '../types/chat';
 
 /**
  * Represents a GitHub issue as returned by Octokit.
@@ -284,6 +284,75 @@ export class GitHubService {
         throw new Error(`Failed to fetch discussions: ${error.message}`);
       }
       throw new Error('Failed to fetch discussions due to an unknown error.');
+    }
+  }
+
+  /**
+   * Fetches a specific GitHub discussion by its ID.
+   * @param discussionId The GitHub GraphQL node ID of the discussion
+   * @returns A promise resolving to the GitHub discussion
+   * @throws Error if the discussion cannot be fetched
+   */
+  async fetchDiscussionById(discussionId: string): Promise<GithubDiscussion> {
+    try {
+      const query = `
+        {
+          node(id: "${discussionId}") {
+            ... on Discussion {
+              id
+              url
+              title
+              body
+              bodyText
+              author {
+                avatarUrl
+                login
+                url
+              }
+              authorAssociation
+              createdAt
+              updatedAt
+              closed
+              isAnswered
+              category {
+                name
+              }
+              comments(first: 10) {
+                totalCount
+                nodes {
+                  id
+                  author {
+                    avatarUrl
+                    login
+                    url
+                  }
+                  authorAssociation
+                  body
+                  createdAt
+                  updatedAt
+                }
+                pageInfo {
+                  hasNextPage
+                  endCursor
+                }
+              }
+            }
+          }
+        }`;
+
+      const response = await this.octokit.graphql<GithubDiscussionByIdResponse>(query);
+
+      if (!response.node) {
+        throw new Error(`Discussion with ID ${discussionId} not found`);
+      }
+
+      return response.node;
+    } catch (error) {
+      console.error('Error fetching discussion by ID:', error);
+      if (error instanceof Error) {
+        throw new Error(`Failed to fetch discussion: ${error.message}`);
+      }
+      throw new Error('Failed to fetch discussion due to an unknown error.');
     }
   }
 }

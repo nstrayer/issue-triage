@@ -87,12 +87,22 @@ export default function Chat() {
     }));
   };
 
-  // Function to handle suggesting actions for an issue
-  const handleSuggestActions = (issueNumber: number) => {
-    addMessage({
-      role: 'user',
-      content: `Please analyze issue #${issueNumber} and suggest appropriate actions for triage`
-    });
+  // Function to handle suggesting actions for an issue or discussion
+  const handleSuggestActions = (itemId: number | string) => {
+    // If itemId is a number, it's an issue number
+    if (typeof itemId === 'number') {
+      addMessage({
+        role: 'user',
+        content: `Please analyze issue #${itemId} and suggest appropriate actions for triage`
+      });
+    } 
+    // If itemId is a string, it's a discussion ID
+    else {
+      addMessage({
+        role: 'user',
+        content: `Please analyze discussion with ID ${itemId} and suggest appropriate actions`
+      });
+    }
   };
 
   // Function to handle applying labels to an issue

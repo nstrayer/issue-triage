@@ -5,4 +5,5 @@ export { setSuggestedLabels } from './set-suggested-labels';
 export { setIssueStatus } from './set-issue-status';
 export { categorizeIssueType } from './categorize-issue-type';
 export { getIssueActivity } from './get-issue-activity';
-export { searchExternalContent } from './search-external-content'; 
+export { searchExternalContent } from './search-external-content';
+export { getDiscussionById } from './get-discussion-by-id'; 

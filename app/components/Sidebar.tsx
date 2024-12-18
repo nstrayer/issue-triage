@@ -101,6 +101,13 @@ export function Sidebar({
     setIsDiscussionModalOpen(true);
   };
 
+  /**
+   * Handles when a user requests suggested actions for a discussion.
+   */
+  const handleDiscussionSuggestActions = (discussionId: string): void => {
+    onSuggestActions(discussionId);
+  };
+
   return (
     <div className="h-full border-r border-gray-200 p-4 overflow-y-auto">
       {/* Issues Section */}
@@ -119,6 +126,7 @@ export function Sidebar({
         isLoadingDiscussions={isLoadingDiscussions}
         discussionsError={discussionsError}
         onDiscussionSelect={handleDiscussionSelect}
+        onSuggestActions={handleDiscussionSuggestActions}
       />
 
       {/* Issue Modal */}

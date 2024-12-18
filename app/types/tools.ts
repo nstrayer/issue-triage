@@ -46,6 +46,10 @@ export interface SearchExternalContentArgs {
     summary?: boolean;
 }
 
+export interface GetDiscussionByIdArgs {
+    discussionId: string;
+}
+
 // Union type of all possible tool call arguments
 export type ToolCallArgs =
     | { toolName: 'getGithubIssue'; args: GetGithubIssueArgs }
@@ -55,4 +59,5 @@ export type ToolCallArgs =
     | { toolName: 'setIssueStatus'; args: SetIssueStatusArgs }
     | { toolName: 'categorizeIssueType'; args: CategorizeIssueTypeArgs }
     | { toolName: 'getIssueActivity'; args: GetIssueActivityArgs }
-    | { toolName: 'searchExternalContent'; args: SearchExternalContentArgs }; 
+    | { toolName: 'searchExternalContent'; args: SearchExternalContentArgs }
+    | { toolName: 'getDiscussionById'; args: GetDiscussionByIdArgs }; 

@@ -23,12 +23,19 @@ interface DiscussionsSectionProps {
    * @param discussion The chosen discussion object
    */
   onDiscussionSelect: (discussion: GithubDiscussion) => void;
+
+  /**
+   * Callback invoked when the user requests suggested actions for a discussion.
+   * @param discussionId The discussion's GraphQL node ID
+   */
+  onSuggestActions: (discussionId: string) => void;
 }
 
 /**
  * Renders a list of GitHub discussions along with:
  * - Loading states
  * - Error states
+ * - Action buttons
  * @param props DiscussionsSectionProps
  * @returns A React component displaying the discussion section of the sidebar
  *
@@ -38,6 +45,7 @@ interface DiscussionsSectionProps {
  *   isLoadingDiscussions={false}
  *   discussionsError={null}
  *   onDiscussionSelect={(disc) => console.log('Selected discussion:', disc)}
+ *   onSuggestActions={(id) => console.log('Suggesting actions for discussion:', id)}
  * />
  */
 export function DiscussionsSection({
@@ -45,6 +53,7 @@ export function DiscussionsSection({
   isLoadingDiscussions,
   discussionsError,
   onDiscussionSelect,
+  onSuggestActions,
 }: DiscussionsSectionProps) {
   const [showNoCommentsOnly, setShowNoCommentsOnly] = useState(false);
 
@@ -86,9 +95,24 @@ export function DiscussionsSection({
           filteredDiscussions.map((discussion) => (
             <div
               key={discussion.id}
-              className="border border-gray-200 rounded-md hover:border-gray-300 transition-colors p-3 cursor-pointer"
-              onClick={() => onDiscussionSelect(discussion)}
+              className="relative group border border-gray-200 rounded-md hover:border-gray-300 transition-colors p-3"
             >
+              {/* Action buttons */}
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                <button
+                  onClick={() => onDiscussionSelect(discussion)}
+                  className="px-3 py-1 bg-white text-sm font-medium text-gray-600 rounded-md shadow hover:bg-gray-50 transition-colors"
+                >
+                  View Details
+                </button>
+                <button
+                  onClick={() => onSuggestActions(discussion.id)}
+                  className="px-2 py-1 text-sm font-medium text-blue-600 hover:text-blue-500"
+                >
+                  Suggest Actions
+                </button>
+              </div>
+
               <div className="flex items-center gap-2 mb-1">
                 <span
                   className={`px-2 py-0.5 text-xs rounded ${
