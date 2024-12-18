@@ -1,6 +1,7 @@
 import React from 'react';
 import { GithubIssue, SuggestedLabels } from '../types/chat';
 import { formatDateTime } from '../utils/dateFormatters';
+import { ActionButtons } from './ActionButtons';
 
 interface IssuesSectionProps {
   /**
@@ -81,7 +82,7 @@ export function IssuesSection({
         {issues.map((issue) => (
           <div
             key={issue.number}
-            className="relative group border border-gray-200 rounded-md hover:border-gray-300 transition-colors p-3"
+            className="border border-gray-200 rounded-md hover:border-gray-300 transition-colors p-3"
           >
             {/* Show suggested labels if available */}
             {suggestedLabels[issue.number] && (
@@ -99,22 +100,6 @@ export function IssuesSection({
                 </div>
               </div>
             )}
-
-            {/* Action buttons */}
-            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-              <button
-                onClick={() => onIssueSelect(issue)}
-                className="px-3 py-1 bg-white text-sm font-medium text-gray-600 rounded-md shadow hover:bg-gray-50 transition-colors"
-              >
-                View Details
-              </button>
-              <button
-                onClick={() => onSuggestActions(issue.number)}
-                className="px-2 py-1 text-sm font-medium text-blue-600 hover:text-blue-500"
-              >
-                Suggest Actions
-              </button>
-            </div>
 
             <div className="flex items-center gap-2 mb-1">
               <span
@@ -148,6 +133,11 @@ export function IssuesSection({
             <div className="text-xs text-gray-500 mt-1">
               Created: {formatDateTime(issue.createdAt)}
             </div>
+
+            <ActionButtons
+              onViewDetails={() => onIssueSelect(issue)}
+              onSuggestActions={() => onSuggestActions(issue.number)}
+            />
           </div>
         ))}
       </div>
