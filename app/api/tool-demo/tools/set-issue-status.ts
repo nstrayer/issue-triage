@@ -1,72 +1,108 @@
 import { z } from 'zod';
-import { SetIssueStatusArgs } from '@/app/types/tools';
-import { getGitHubClient } from '../github-client';
+import { githubService } from '../../../services/github';
+import { BaseTool, ToolErrorCode, createToolError, createToolSuccess } from '../types/tool-types';
+import { VALID_STATUSES, ValidStatus, StatusUpdateResponse } from '../types/github-types';
 
-const VALID_STATUSES = [
-    '',
-    'Triage',
-    'Backlog',
-    'Up Next',
-    'In Progress',
-    'PR Ready',
-    'Ready for Verification',
-    'In Verification',
-    'Done'
-] as const;
+/**
+ * Input parameters schema for setIssueStatus
+ */
+const setIssueStatusSchema = z.object({
+  issueNumber: z.number()
+    .int()
+    .positive()
+    .describe('The GitHub issue number to update'),
+  currentStatus: z.string()
+    .nullable()
+    .describe('The current status value if any'),
+  suggestedStatus: z.enum(VALID_STATUSES)
+    .describe('The proposed new status value'),
+  reason: z.string()
+    .min(1)
+    .describe('Justification for the status change'),
+});
 
-type ValidStatus = typeof VALID_STATUSES[number];
+type SetIssueStatusInput = z.infer<typeof setIssueStatusSchema>;
 
-export const setIssueStatus = {
-    description: 'Updates the status field of a GitHub issue based on workflow rules',
-    parameters: z.object({
-        issueNumber: z.number().describe('The GitHub issue number to update'),
-        currentStatus: z.string().nullable().describe('The current status value if any'),
-        suggestedStatus: z.string().describe('The proposed new status value'),
-        reason: z.string().describe('Justification for the status change')
-    }),
-    execute: async ({ issueNumber, currentStatus, suggestedStatus, reason }: SetIssueStatusArgs) => {
-        try {
-            const octokit = getGitHubClient();
+/**
+ * Tool for updating the status of a GitHub issue
+ */
+export const setIssueStatus: BaseTool<SetIssueStatusInput, StatusUpdateResponse> = {
+  name: 'setIssueStatus',
+  description: 'Updates the status field of a GitHub issue based on workflow rules',
+  parameters: setIssueStatusSchema,
+  
+  async execute({ issueNumber, currentStatus, suggestedStatus, reason }) {
+    try {
+      // Validate input
+      const validationResult = setIssueStatusSchema.safeParse({
+        issueNumber,
+        currentStatus,
+        suggestedStatus,
+        reason,
+      });
 
-            // Validate suggested status
-            if (!VALID_STATUSES.includes(suggestedStatus as ValidStatus)) {
-                throw new Error(`Invalid status: ${suggestedStatus}. Must be one of: ${VALID_STATUSES.join(', ')}`);
-            }
+      if (!validationResult.success) {
+        return createToolError(
+          ToolErrorCode.VALIDATION_ERROR,
+          'Invalid input parameters',
+          validationResult.error
+        );
+      }
 
-            // Get current issue state to validate transitions
-            const { data: issue } = await octokit.rest.issues.get({
-                owner: process.env.GITHUB_REPOSITORY_OWNER!,
-                repo: process.env.GITHUB_REPOSITORY_NAME!,
-                issue_number: issueNumber,
-            });
+      // Get current issue state to validate transitions
+      const issue = await githubService.getIssue(issueNumber);
+      
+      if (!issue) {
+        return createToolError(
+          ToolErrorCode.NOT_FOUND,
+          `Issue #${issueNumber} not found`
+        );
+      }
 
-            // Validate status transitions
-            if (suggestedStatus === 'Done' && issue.state_reason !== 'completed') {
-                throw new Error('Cannot set status to Done for non-completed issues');
-            }
+      // Validate status transitions
+      if (suggestedStatus === 'Done' && issue.state_reason !== 'completed') {
+        return createToolError(
+          ToolErrorCode.VALIDATION_ERROR,
+          'Cannot set status to Done for non-completed issues'
+        );
+      }
 
-            // Update the status using a custom field or label
-            await octokit.rest.issues.update({
-                owner: process.env.GITHUB_REPOSITORY_OWNER!,
-                repo: process.env.GITHUB_REPOSITORY_NAME!,
-                issue_number: issueNumber,
-                body: `${issue.body}\n\nStatus: ${suggestedStatus}\nReason: ${reason}`,
-            });
+      // Update the issue with new status
+      const updatedBody = `${issue.body}\n\nStatus: ${suggestedStatus}\nReason: ${reason}`;
+      
+      try {
+        await githubService.updateIssue(issueNumber, {
+          body: updatedBody,
+        });
+      } catch (error) {
+        return createToolError(
+          ToolErrorCode.GITHUB_API_ERROR,
+          'Failed to update issue status',
+          error
+        );
+      }
 
-            return {
-                success: true,
-                previousStatus: currentStatus || '',
-                newStatus: suggestedStatus,
-                message: `Successfully updated issue #${issueNumber} status to "${suggestedStatus}". Reason: ${reason}`,
-            };
-        } catch (error) {
-            console.error('Error updating issue status:', error);
-            return {
-                success: false,
-                previousStatus: currentStatus || '',
-                newStatus: currentStatus || '',
-                message: `Failed to update status: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            };
-        }
-    },
-}; 
+      return createToolSuccess({
+        previousStatus: currentStatus || '',
+        newStatus: suggestedStatus,
+        message: `Successfully updated issue #${issueNumber} status to "${suggestedStatus}". Reason: ${reason}`,
+      });
+    } catch (error) {
+      console.error('Error in setIssueStatus:', error);
+      
+      if (error instanceof Error) {
+        return createToolError(
+          ToolErrorCode.GITHUB_API_ERROR,
+          `Failed to update status: ${error.message}`,
+          error
+        );
+      }
+      
+      return createToolError(
+        ToolErrorCode.INTERNAL_ERROR,
+        'An unexpected error occurred while updating issue status',
+        error
+      );
+    }
+  },
+};

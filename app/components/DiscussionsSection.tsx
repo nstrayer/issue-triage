@@ -118,6 +118,7 @@ export function DiscussionsSection({
               metadata={
                 <span>{discussion.comments.nodes.length} comments</span>
               }
+              body={discussion.bodyText}
               onViewDetails={() => onDiscussionSelect(discussion)}
               onSuggestActions={() => onSuggestActions(discussion.id)}
             />
@@ -126,4 +127,4 @@ export function DiscussionsSection({
       </div>
     </section>
   );
-} 
+}

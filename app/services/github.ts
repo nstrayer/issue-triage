@@ -7,6 +7,17 @@ import { GitHubConfig, GithubDiscussion, GithubDiscussionByIdResponse, GithubDis
 type OctokitIssue = RestEndpointMethodTypes['issues']['listForRepo']['response']['data'][number];
 
 /**
+ * Interface for issue update parameters
+ */
+interface UpdateIssueParams {
+  title?: string;
+  body?: string;
+  state?: 'open' | 'closed';
+  labels?: string[];
+  assignees?: string[];
+}
+
+/**
  * Service class for handling GitHub API operations.
  */
 export class GitHubService {
@@ -27,6 +38,23 @@ export class GitHubService {
     });
     this.owner = config.owner;
     this.repo = config.repo;
+  }
+
+  /**
+   * Updates an existing issue with new data.
+   * @param issueNumber The number of the issue to update
+   * @param params The parameters to update on the issue
+   * @returns A promise resolving to the updated issue
+   */
+  async updateIssue(issueNumber: number, params: UpdateIssueParams): Promise<OctokitIssue> {
+    const response = await this.octokit.rest.issues.update({
+      owner: this.owner,
+      repo: this.repo,
+      issue_number: issueNumber,
+      ...params,
+    });
+
+    return response.data;
   }
 
   /**
@@ -380,4 +408,4 @@ export const githubService = new GitHubService({
   repo: process.env.GITHUB_REPOSITORY_NAME || 'positron',
   auth: process.env.GITHUB_TOKEN || '',
   projectName: 'Positron Backlog',
-}); 
+});

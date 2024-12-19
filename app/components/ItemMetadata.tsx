@@ -26,12 +26,14 @@ export function ItemMetadata({ createdAt, metadata }: ItemMetadataProps) {
   return (
     <div className="ml-auto">
       <div className="text-gray-500">
-        <span 
-          className="cursor-help relative group"
-          title={`Created: ${createdAt}`}
-        >
-          {relativeTime}
-          <span className="invisible group-hover:visible absolute -top-8 right-0 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap">
+        <span className="relative">
+          <span 
+            className="cursor-help peer"
+            title={`Created: ${createdAt}`}
+          >
+            {relativeTime}
+          </span>
+          <span className="invisible peer-hover:visible absolute -top-8 right-0 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap">
             Created: {createdAt}
           </span>
         </span>
@@ -39,4 +41,4 @@ export function ItemMetadata({ createdAt, metadata }: ItemMetadataProps) {
       {metadata && <div className="text-gray-500">{metadata}</div>}
     </div>
   );
-} 
+}

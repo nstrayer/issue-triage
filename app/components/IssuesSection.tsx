@@ -94,6 +94,7 @@ export function IssuesSection({
             metadata={
               <span>{issue.comments.totalCount} comments</span>
             }
+            body={issue.body}
             topContent={
               suggestedLabels[issue.number] && (
                 <div className="mb-2 p-2 bg-blue-50 rounded-md">
@@ -118,4 +119,4 @@ export function IssuesSection({
       </div>
     </section>
   );
-} 
+}

@@ -139,33 +139,39 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-gray-50">
       {/* Title bar */}
-      <header className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center px-4 z-10">
-        <h1 className="text-xl font-bold text-gray-800">Positron Intake Assistant</h1>
+      <header className="fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center px-4 z-10 shadow-sm">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-semibold text-gray-800">Positron Intake Assistant</h1>
+          <div className="h-4 w-px bg-gray-200" />
+          <span className="text-sm text-gray-500">AI-powered issue triage</span>
+        </div>
       </header>
 
       {/* Main content with padding for title bar */}
       <div className="flex w-full pt-14">
         <ResizablePanelGroup direction="horizontal">
-          <ResizablePanel defaultSize={40} minSize={15} maxSize={60}>
-            <Sidebar
-              isLoadingGithub={isLoadingGithub}
-              githubError={githubError}
-              issues={issues}
-              suggestedLabels={suggestedLabels}
-              onSuggestActions={handleSuggestActions}
-              onApplyLabels={handleApplyLabels}
-              isApplyingLabels={isApplyingLabels}
-            />
+          <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
+            <div className="h-full bg-white">
+              <Sidebar
+                isLoadingGithub={isLoadingGithub}
+                githubError={githubError}
+                issues={issues}
+                suggestedLabels={suggestedLabels}
+                onSuggestActions={handleSuggestActions}
+                onApplyLabels={handleApplyLabels}
+                isApplyingLabels={isApplyingLabels}
+              />
+            </div>
           </ResizablePanel>
           
-          <ResizableHandle withHandle />
+          <ResizableHandle withHandle className="bg-gray-100 w-px" />
           
-          <ResizablePanel defaultSize={60}>
+          <ResizablePanel defaultSize={65}>
             {/* Main chat interface */}
-            <main className="flex-1 flex flex-col h-full">
-              <div className="flex-1 overflow-y-auto p-4">
+            <main className="flex-1 flex flex-col h-full bg-white">
+              <div className="flex-1 overflow-y-auto p-6">
                 <div className="max-w-3xl mx-auto">
                   {/* System Prompt */}
                   <SystemPrompt
@@ -175,7 +181,7 @@ export default function Chat() {
                   />
 
                   {/* Messages */}
-                  <div className="mt-4 space-y-4">
+                  <div className="mt-6 space-y-6">
                     {messages
                       .filter(m => m.role !== 'system')
                       .map(message => (
@@ -190,7 +196,7 @@ export default function Chat() {
 
                   {/* Error Display */}
                   {toolError && (
-                    <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                       <div className="flex items-center gap-2 text-red-600 mb-2">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -216,12 +222,14 @@ export default function Chat() {
               </div>
 
               {/* Input Form */}
-              <ChatInput
-                input={input}
-                isLoading={isToolLoading}
-                onInputChange={handleInputChange}
-                onSubmit={handleSubmit}
-              />
+              <div className="border-t border-gray-100 bg-white">
+                <ChatInput
+                  input={input}
+                  isLoading={isToolLoading}
+                  onInputChange={handleInputChange}
+                  onSubmit={handleSubmit}
+                />
+              </div>
             </main>
           </ResizablePanel>
         </ResizablePanelGroup>
