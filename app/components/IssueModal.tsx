@@ -1,5 +1,6 @@
 import { GithubIssue } from '../types/chat';
 import ReactMarkdown from 'react-markdown';
+import { useEffect, useRef } from 'react';
 
 interface IssueModalProps {
   issue: GithubIssue | null;
@@ -27,23 +28,56 @@ export function IssueModal({
   onApplyLabels,
   isApplyingLabels = false,
 }: IssueModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+      document.addEventListener('mousedown', handleClickOutside);
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen || !issue) return null;
 
   const issueUrl = `https://github.com/posit-dev/positron/issues/${issue.number}`;
   const cleanBody = removeHtmlComments(issue.body || '');
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-full max-w-4xl h-[90vh] overflow-hidden shadow-xl flex flex-col">
+    <div className="modal-backdrop" role="dialog" aria-modal="true">
+      <div 
+        ref={modalRef}
+        className="modal-content"
+        tabIndex={-1}
+      >
         {/* Header */}
-        <div className="border-b border-gray-200 px-6 py-4 flex justify-between items-center flex-shrink-0">
+        <div className="modal-header">
           <div className="flex items-center gap-4">
             <h2 className="text-xl font-semibold text-gray-800">Issue #{issue.number}</h2>
             <a
               href={issueUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+              className="modal-action-button-secondary"
             >
               Open in GitHub
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -53,7 +87,8 @@ export function IssueModal({
           </div>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 transition-colors"
+            className="modal-close-button"
+            aria-label="Close dialog"
             disabled={isApplyingLabels}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,17 +98,17 @@ export function IssueModal({
         </div>
 
         {/* Content */}
-        <div className="flex-grow overflow-y-auto px-6 py-4">
+        <div className="modal-body">
           <div className="max-w-3xl mx-auto">
             <h3 className="text-xl font-medium text-gray-900 mb-4">{issue.title}</h3>
             
             {/* Metadata */}
             <div className="flex items-center gap-4 text-sm text-gray-500 mb-6">
               <span>Created: {new Date(issue.createdAt).toLocaleDateString()}</span>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+              <span className={`modal-label ${
                 issue.state === 'open'
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-purple-100 text-purple-800'
+                  ? 'modal-label-success'
+                  : 'modal-label-error'
               }`}>
                 {issue.state}
               </span>
@@ -84,10 +119,10 @@ export function IssueModal({
               <div className="mb-6">
                 <h4 className="text-sm font-medium text-gray-700 mb-2">Current Labels:</h4>
                 <div className="flex flex-wrap gap-2">
-                    {issue.labelsParsed.map((label, index) => (
+                  {issue.labelsParsed.map((label, index) => (
                     <span
                       key={index}
-                      className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full"
+                      className="modal-label bg-gray-100 text-gray-800"
                     >
                       {label}
                     </span>
@@ -103,7 +138,7 @@ export function IssueModal({
                   <h4 className="text-sm font-medium text-blue-900">Suggested Labels</h4>
                   <button
                     onClick={() => onApplyLabels?.(issue.number, suggestedLabels)}
-                    className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="modal-action-button-primary"
                     disabled={isApplyingLabels}
                   >
                     {isApplyingLabels ? (
@@ -123,7 +158,7 @@ export function IssueModal({
                   {suggestedLabels.map((label, index) => (
                     <span
                       key={index}
-                      className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full"
+                      className="modal-label bg-blue-100 text-blue-800"
                     >
                       {label}
                     </span>
@@ -175,7 +210,7 @@ export function IssueModal({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-200 px-6 py-4 bg-gray-50">
+        <div className="modal-footer">
           <div className="text-sm text-gray-500">
             To participate in the discussion, please use the "Open in GitHub" button.
           </div>

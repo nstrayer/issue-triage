@@ -31,6 +31,7 @@ function transformIssue(octokitIssue: any): GithubIssue {
       login: octokitIssue.user.login,
       url: octokitIssue.user.html_url,
     },
+    authorAssociation: octokitIssue.author_association,
     comments: {
       totalCount: octokitIssue.comments,
       nodes: [], // Comments require a separate API call if needed

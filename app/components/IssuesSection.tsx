@@ -85,6 +85,7 @@ export function IssuesSection({
             title={issue.title}
             url={`https://github.com/posit-dev/positron/issues/${issue.number}`}
             author={issue.author}
+            authorAssociation={issue.authorAssociation}
             createdAt={formatDateTime(issue.createdAt)}
             status={{
               label: issue.state,

@@ -110,6 +110,7 @@ export function DiscussionsSection({
               title={discussion.title}
               url={discussion.url}
               author={discussion.author}
+              authorAssociation={discussion.authorAssociation}
               createdAt={formatDateTime(discussion.createdAt)}
               status={{
                 label: getStatusLabel(discussion),

@@ -229,6 +229,7 @@ export interface GithubIssueNode {
   state: string;
   pull_request?: unknown;
   author: GithubUser;
+  authorAssociation: AuthorAssociation;
   comments: {
     totalCount: number;
     nodes: GithubDiscussionComment[];

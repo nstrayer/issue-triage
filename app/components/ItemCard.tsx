@@ -1,4 +1,5 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useMemo } from 'react';
+import { marked } from 'marked';
 import { ActionButtons } from './ActionButtons';
 import { ItemMetadata } from './ItemMetadata';
 
@@ -20,6 +21,7 @@ interface ItemCardProps {
     avatarUrl: string;
     login: string;
   };
+  authorAssociation: 'MEMBER' | 'OWNER' | 'MANNEQUIN' | 'COLLABORATOR' | 'CONTRIBUTOR' | 'FIRST_TIME_CONTRIBUTOR' | 'FIRST_TIMER' | 'NONE';
 
   /**
    * The creation date of the item
@@ -76,6 +78,7 @@ export function ItemCard({
   title,
   url,
   author,
+  authorAssociation,
   createdAt,
   status,
   identifier,
@@ -85,12 +88,24 @@ export function ItemCard({
   onViewDetails,
   onSuggestActions,
 }: ItemCardProps) {
-  // Get first 2 lines of body text, up to 280 characters
-  const bodyPreview = body?.split('\n')
-    .filter(line => line.trim().length > 0)
-    .slice(0, 2)
-    .join('\n')
-    .slice(0, 280);
+  // Process markdown and create preview
+  const bodyPreview = useMemo(() => {
+    if (!body) return '';
+    
+    // Remove markdown syntax using marked.parse (synchronous version)
+    const plainText = marked.parse(body, { async: false }) as string;
+    
+    // Clean up HTML and get preview
+    return plainText
+      .replace(/<[^>]*>/g, '') // Remove HTML tags
+      .replace(/&[^;]+;/g, ' ') // Replace HTML entities with space
+      .trim()
+      .split('\n')
+      .filter((line: string) => line.trim().length > 0)
+      .slice(0, 3)
+      .join('\n')
+      .slice(0, 300); // Allow more characters for 3 lines
+  }, [body]);
   const statusColorClasses = {
     green: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
     purple: 'bg-purple-50 text-purple-700 ring-purple-600/20',
@@ -145,25 +160,33 @@ export function ItemCard({
         </div>
 
         {bodyPreview && (
-          <div className="mb-3">
-            <p className="text-sm text-gray-600 line-clamp-2 whitespace-pre-line">
+          <div className="mb-2">
+            <p className="text-xs text-gray-400 line-clamp-3 whitespace-pre-line opacity-90">
               {bodyPreview}
             </p>
           </div>
         )}
 
         <div className="flex items-center gap-3 text-xs text-gray-500">
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <img
-                src={author.avatarUrl}
-                alt={`${author.login}'s avatar`}
-                className="w-5 h-5 rounded-full ring-2 ring-white"
-              />
-              <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 bg-green-400 border-2 border-white rounded-full" />
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <img
+                  src={author.avatarUrl}
+                  alt={`${author.login}'s avatar`}
+                  className="w-5 h-5 rounded-full ring-2 ring-white"
+                />
+                {(authorAssociation === 'MEMBER' || authorAssociation === 'OWNER') && (
+                  <div 
+                    className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 border-2 border-white rounded-full"
+                    title={`${author.login} is a ${authorAssociation.toLowerCase()} of the repository`}
+                  >
+                    <span className="sr-only">Internal team member</span>
+                  </div>
+                )}
+                <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 bg-green-400 border-2 border-white rounded-full" />
+              </div>
+              <span className="font-medium">{author.login}</span>
             </div>
-            <span className="font-medium">{author.login}</span>
-          </div>
           <ItemMetadata createdAt={createdAt} metadata={metadata} />
         </div>
       </div>
